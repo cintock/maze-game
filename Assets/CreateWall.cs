@@ -9,9 +9,8 @@ public class CreateWall : MonoBehaviour
     public GameObject wallPart;
     public GameObject player;
 
-    private System.Random rnd;
-
     private List<GameObject> internalWalls = new List<GameObject>();
+
     private bool collapsedWalls = false;
 
     private readonly float collapsLength = 4.2f;
@@ -21,16 +20,6 @@ public class CreateWall : MonoBehaviour
     {
         try
         {
-
-            /*
-            CreateRightWall(0, 0);
-            CreateRightWall(0, 1);
-
-            CreateBottomWall(0, 0);
-            CreateBottomWall(0, 1);
-            */
-
-
             int rowCount = 35;
             int colCount = 35;
 
@@ -47,13 +36,9 @@ public class CreateWall : MonoBehaviour
                 CreateBottomWall(rowCount - 1, col, null, true);
             }
             
-
-
-            
             IMazeGenerator generator = new EllerModMazeGenerator();
 
             IMazeView maze = generator.Generate(rowCount, colCount);
-            rnd = new System.Random();
             for (int row = 0; row < rowCount; row++)
             {
                 for (int col = 0; col < colCount; col++)
@@ -78,11 +63,6 @@ public class CreateWall : MonoBehaviour
         {
             Debug.Log(ex);
         }
-    }
-
-    bool RandomBool()
-    {
-        return rnd.Next() % 2 == 0;
     }
 
     void CreateLeftWall(int row, int col, bool external = false)
@@ -119,23 +99,44 @@ public class CreateWall : MonoBehaviour
         }
     }
 
+    void CollapsWall(GameObject wall, bool down)
+    {
+        float mult = down ? -1 : +1;
+        wall.transform.position = wall.transform.position + 
+            (mult * (new Vector3(0, collapsLength, 0)));
+    }
+
+    void UpWalls()
+    {
+        foreach (GameObject wall in internalWalls)
+        {
+            CollapsWall(wall, false);
+        }
+        collapsedWalls = false;
+    }
+
+    void DownWalls()
+    {
+        foreach (GameObject wall in internalWalls)
+        {
+            CollapsWall(wall, true);
+        }
+        collapsedWalls = true;
+    }
+
     // Update is called once per frame
     void Update()
     {
         if (Input.GetKeyDown(KeyCode.M))
         {
-            foreach (GameObject wall in internalWalls)
+            if (collapsedWalls)
             {
-                if (!collapsedWalls)
-                {
-                    wall.transform.position = wall.transform.position - (new Vector3(0, collapsLength, 0));
-                }
-                else
-                {
-                    wall.transform.position = wall.transform.position + (new Vector3(0, collapsLength, 0));
-                }
+                UpWalls();
             }
-            collapsedWalls = !collapsedWalls; 
+            else
+            {
+                DownWalls();
+            }
         }
     }
 }
